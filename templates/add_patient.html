@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambah Pasien - MedAssist AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom">
+        <a href="/dashboard" class="navbar-brand">
+            <span class="logo-icon">🏥</span>
+            <span>MedAssist AI</span>
+        </a>
+        <div class="user-info">
+            <a href="/dashboard" class="btn-logout">
+                <span>← Dashboard</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content fade-in">
+        
+        <!-- Back Button -->
+        <a href="/dashboard" class="btn-back">
+            ← Kembali ke Dashboard
+        </a>
+
+        <!-- Page Header -->
+        <div class="page-header text-left">
+            <h1 class="page-title">👤 Tambah Pasien Baru</h1>
+            <p class="page-subtitle">Masukkan data pasien dengan lengkap dan akurat</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-container">
+            <div class="form-card slide-up">
+                <form action="/ui/add-patient" method="post" id="patientForm">
+                    
+                    <!-- Icon Header -->
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white; margin-bottom: 1rem; box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);">👤</div>
+                        <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Data Pasien</h2>
+                        <p style="color: var(--gray); margin: 0;">Isi formulir di bawah untuk menambahkan pasien</p>
+                    </div>
+
+                    <!-- Nama -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span style="margin-right: 0.5rem;">📝</span>Nama Lengkap Pasien
+                        </label>
+                        <input 
+                            type="text" 
+                            name="name" 
+                            class="form-control" 
+                            placeholder="Contoh: Ahmad Fauzi"
+                            required
+                            minlength="2"
+                            maxlength="100"
+                            id="nameInput"
+                        >
+                    </div>
+
+                    <!-- Umur -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span style="margin-right: 0.5rem;">🎂</span>Umur Pasien
+                        </label>
+                        <input 
+                            type="number" 
+                            name="age" 
+                            class="form-control" 
+                            placeholder="Contoh: 25"
+                            required
+                            min="0"
+                            max="150"
+                            id="ageInput"
+                        >
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span style="margin-right: 0.5rem;">👫</span>Jenis Kelamin
+                        </label>
+                        <select name="gender" class="form-control" required id="genderSelect">
+                            <option value="">Pilih Jenis Kelamin</option>
+                            <option value="Laki-laki">👨 Laki-laki</option>
+                            <option value="Perempuan">👩 Perempuan</option>
+                        </select>
+                    </div>
+
+                    <!-- Info Card -->
+                    <div style="background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid rgba(79, 70, 229, 0.1);">
+                        <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                            <div style="font-size: 1.5rem;">ℹ️</div>
+                            <div>
+                                <strong style="color: var(--primary);">Informasi</strong>
+                                <p style="font-size: 0.9rem; color: var(--gray); margin: 0.25rem 0 0;">Data pasien akan disimpan ke dalam database sistem. Pastikan data yang dimasukkan sudah benar.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary btn-lg btn-block" id="submitBtn">
+                        <span class="btn-text">💾 Simpan Data Pasien</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form validation
+        document.getElementById('patientForm').addEventListener('submit', function(e) {
+            const name = document.getElementById('nameInput').value.trim();
+            const age = document.getElementById('ageInput').value;
+            const gender = document.getElementById('genderSelect').value;
+            
+            let isValid = true;
+            
+            // Validate name
+            if (name.length < 2) {
+                document.getElementById('nameInput').classList.add('is-invalid');
+                isValid = false;
+            } else {
+                document.getElementById('nameInput').classList.remove('is-invalid');
+            }
+            
+            // Validate age
+            if (age < 0 || age > 150 || age === '') {
+                document.getElementById('ageInput').classList.add('is-invalid');
+                isValid = false;
+            } else {
+                document.getElementById('ageInput').classList.remove('is-invalid');
+            }
+            
+            // Validate gender
+            if (gender === '') {
+                document.getElementById('genderSelect').classList.add('is-invalid');
+                isValid = false;
+            } else {
+                document.getElementById('genderSelect').classList.remove('is-invalid');
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                // Shake animation
+                const formCard = document.querySelector('.form-card');
+                formCard.style.animation = 'shake 0.5s ease';
+                setTimeout(() => {
+                    formCard.style.animation = '';
+                }, 500);
+            } else {
+                // Show loading state
+                const btn = document.getElementById('submitBtn');
+                btn.innerHTML = '<span class="spinner-border me-2"></span>Menyimpan...';
+                btn.disabled = true;
+            }
+        });
+
+        // Real-time validation feedback
+        ['nameInput', 'ageInput', 'genderSelect'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        });
+
+        // Add shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

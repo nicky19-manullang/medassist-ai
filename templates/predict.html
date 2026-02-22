@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediksi Penyakit - MedAssist AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom">
+        <a href="/dashboard" class="navbar-brand">
+            <span class="logo-icon">🏥</span>
+            <span>MedAssist AI</span>
+        </a>
+        <div class="user-info">
+            <a href="/dashboard" class="btn-logout">
+                <span>← Dashboard</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content fade-in">
+        
+        <!-- Back Button -->
+        <a href="/dashboard" class="btn-back">
+            ← Kembali ke Dashboard
+        </a>
+
+        <!-- Page Header -->
+        <div class="page-header text-left">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; color: white; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);">🤖</div>
+                <div>
+                    <h1 class="page-title" style="margin-bottom: 0;">AI Diagnosis</h1>
+                    <p class="page-subtitle" style="margin: 0;">Ceritakan gejala pasien dengan bahasa natural</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-container">
+            <div class="form-card slide-up">
+                
+                <!-- Error Message -->
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    <span>⚠️</span>
+                    {{ error }}
+                </div>
+                {% endif %}
+                
+                <form action="/ui/predict" method="post" id="predictForm">
+                    
+                    <!-- Patient Search (AI Style) -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span style="margin-right: 0.5rem;">👤</span>Cari Pasien
+                        </label>
+                        <p style="color: var(--gray); font-size: 0.875rem; margin-bottom: 0.75rem;">
+                            Ketik nama pasien untuk mencari
+                        </p>
+                        <div class="ai-input-container">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="patientSearch"
+                                   placeholder="Ketik nama pasien... (autocomplete)"
+                                   autocomplete="off">
+                            <input type="hidden" name="patient_id" id="patientId">
+                            <div class="autocomplete-dropdown" id="autocomplete"></div>
+                        </div>
+                        {% if not patients %}
+                        <div class="alert alert-warning" style="margin-top: 1rem; margin-bottom: 0;">
+                            ⚠️ Tidak ada pasien. <a href="/ui/add-patient" style="color: var(--primary); font-weight: 600;">Tambah pasien</a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Selected Patient Info -->
+                    <div class="patient-info" id="patientInfo" style="display: none;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">✓</div>
+                            <div>
+                                <h4 style="margin: 0; color: var(--success);">Pasien Ditemukan</h4>
+                                <p style="margin: 0; color: var(--gray); font-size: 0.875rem;">Data pasien berhasil dipilih</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4">
+                                <div style="padding: 0.75rem; background: white; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 0.75rem; color: var(--gray); text-transform: uppercase;">Nama</div>
+                                    <div style="font-weight: 600; color: var(--dark);" id="infoName">-</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div style="padding: 0.75rem; background: white; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 0.75rem; color: var(--gray); text-transform: uppercase;">Umur</div>
+                                    <div style="font-weight: 600; color: var(--dark);" id="infoAge">-</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div style="padding: 0.75rem; background: white; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 0.75rem; color: var(--gray); text-transform: uppercase;">Gender</div>
+                                    <div style="font-weight: 600; color: var(--dark);" id="infoGender">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Symptoms Input -->
+                    <div class="form-group" style="margin-top: 2rem;">
+                        <label class="form-label">
+                            <span style="margin-right: 0.5rem;">🩺</span>Gejala Pasien
+                        </label>
+                        <p style="color: var(--gray); font-size: 0.875rem; margin-bottom: 0.75rem;">
+                            Tulis gejala dalam bahasa natural, contoh: <em>"pasien demam, batuk, dan pusing"</em>
+                        </p>
+                        
+                        <textarea 
+                            name="symptoms_text" 
+                            class="form-control ai-symptoms-input" 
+                            id="symptomsInput"
+                            placeholder="Ketik gejala di sini...&#10;Contoh: demam tinggi, batuk kering, pegal-pegal, mual"
+                            rows="4"
+                        ></textarea>
+                        
+                        <!-- Quick Suggestions -->
+                        <div class="quick-suggestions">
+                            <span class="suggestion-chip" onclick="addSymptom('demam')">🌡️ Demam</span>
+                            <span class="suggestion-chip" onclick="addSymptom('batuk')">😷 Batuk</span>
+                            <span class="suggestion-chip" onclick="addSymptom('pusing')">😵 Pusing</span>
+                            <span class="suggestion-chip" onclick="addSymptom('mual')">🤢 Mual</span>
+                            <span class="suggestion-chip" onclick="addSymptom('nyeri perut')">🤲 Nyeri Perut</span>
+                            <span class="suggestion-chip" onclick="addSymptom('pegal')">💪 Pegal</span>
+                            <span class="suggestion-chip" onclick="addSymptom('sesak napas')">😮‍💨 Sesak</span>
+                            <span class="suggestion-chip" onclick="addSymptom('tensi tinggi')">❤️ Tensi Tinggi</span>
+                        </div>
+                        
+                        <!-- Detected Symptoms Display -->
+                        <div class="detected-symptoms" id="detectedSymptoms" style="display: none;">
+                            <h6>✅ Gejala Terdeteksi:</h6>
+                            <div id="symptomList"></div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary btn-lg btn-block" id="submitBtn" {% if not patients %}disabled{% endif %}>
+                        <span class="btn-text">🔍 Mulai Diagnosis AI</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Patient data
+        var patientData = {{ patients | tojson }};
+        
+        // Patient search autocomplete
+        var searchInput = document.getElementById('patientSearch');
+        var autocomplete = document.getElementById('autocomplete');
+        var patientIdInput = document.getElementById('patientId');
+        
+        searchInput.addEventListener('input', function() {
+            var query = this.value.toLowerCase();
+            
+            if (query.length < 1) {
+                autocomplete.classList.remove('show');
+                return;
+            }
+            
+            // Filter patients
+            var matches = patientData.filter(function(p) {
+                return p.name.toLowerCase().includes(query);
+            });
+            
+            if (matches.length > 0) {
+                var html = matches.map(function(p) {
+                    return '<div class="autocomplete-item" onclick="selectPatient(' + p.id + ', \'' + p.name + '\', ' + p.age + ', \'' + p.gender + '\')">' +
+                        '<div class="name">' + p.name + '</div>' +
+                        '<div class="details">Umur: ' + p.age + ' tahun | ' + p.gender + '</div>' +
+                    '</div>';
+                }).join('');
+                autocomplete.innerHTML = html;
+                autocomplete.classList.add('show');
+            } else {
+                autocomplete.classList.remove('show');
+            }
+        });
+        
+        // Close autocomplete when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !autocomplete.contains(e.target)) {
+                autocomplete.classList.remove('show');
+            }
+        });
+        
+        // Select patient
+        function selectPatient(id, name, age, gender) {
+            searchInput.value = name;
+            patientIdInput.value = id;
+            autocomplete.classList.remove('show');
+            
+            // Show patient info
+            document.getElementById('infoName').textContent = name;
+            document.getElementById('infoAge').textContent = age + ' th';
+            document.getElementById('infoGender').textContent = gender;
+            document.getElementById('patientInfo').style.display = 'block';
+            document.getElementById('patientInfo').classList.add('fade-in');
+        }
+        
+        // Add symptom from chip
+        function addSymptom(symptom) {
+            var input = document.getElementById('symptomsInput');
+            var current = input.value.trim();
+            
+            if (current.length > 0) {
+                input.value = current + ', ' + symptom;
+            } else {
+                input.value = symptom;
+            }
+            
+            // Trigger input event to analyze
+            input.dispatchEvent(new Event('input'));
+        }
+        
+        // Simple symptom detection from text
+        var symptomsInput = document.getElementById('symptomsInput');
+        var detectedSymptoms = document.getElementById('detectedSymptoms');
+        var symptomList = document.getElementById('symptomList');
+        
+        var symptomKeywords = {
+            'demam': 'Fever',
+            'panas': 'Fever',
+            'febris': 'Fever',
+            'batuk': 'Batuk',
+            'cough': 'Batuk',
+            'pusing': 'Pusing',
+            'headache': 'Pusing',
+            'vertigo': 'Pusing',
+            'mual': 'Mual',
+            'nausea': 'Mual',
+            'enek': 'Mual',
+            'nyeri perut': 'Nyeri Perut',
+            'perut': 'Nyeri Perut',
+            'lambung': 'Nyeri Perut',
+            'maag': 'Nyeri Perut',
+            'pegal': 'Nyeri Otot',
+            'otot': 'Nyeri Otot',
+            'linu': 'Nyeri Otot',
+            'sesak': 'Sesak Napas',
+            'nafas': 'Sesak Napas',
+            'napas': 'Sesak Napas',
+            'tensi': 'Tensi Tinggi',
+            'tekanan darah': 'Tensi Tinggi',
+            'hipertensi': 'Tensi Tinggi'
+        };
+        
+        symptomsInput.addEventListener('input', function() {
+            var text = this.value.toLowerCase();
+            var detected = [];
+            
+            for (var keyword in symptomKeywords) {
+                if (text.includes(keyword)) {
+                    // Check for negation
+                    var idx = text.indexOf(keyword);
+                    var context = text.substring(Math.max(0, idx - 10), idx);
+                    
+                    var isNegated = context.includes('tidak') || 
+                                   context.includes('ga') || 
+                                   context.includes('gak') ||
+                                   context.includes('bukan') ||
+                                   context.includes('tanpa');
+                    
+                    if (!isNegated && !detected.includes(symptomKeywords[keyword])) {
+                        detected.push(symptomKeywords[keyword]);
+                    }
+                }
+            }
+            
+            if (detected.length > 0) {
+                symptomList.innerHTML = detected.map(function(s) {
+                    return '<span class="symptom-badge">' + s + '</span>';
+                }).join('');
+                detectedSymptoms.style.display = 'block';
+            } else {
+                detectedSymptoms.style.display = 'none';
+            }
+        });
+        
+        // Form validation
+        document.getElementById('predictForm').addEventListener('submit', function(e) {
+            var patientId = patientIdInput.value;
+            var symptomsText = symptomsInput.value.trim();
+            
+            if (!patientId) {
+                e.preventDefault();
+                alert('Silakan cari dan pilih pasien terlebih dahulu!');
+                return;
+            }
+            
+            if (!symptomsText) {
+                e.preventDefault();
+                alert('Silakan tulis gejala pasien!');
+                return;
+            }
+            
+            // Show loading
+            var btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<span class="spinner-border me-2"></span>Menganalisis dengan AI...';
+            btn.disabled = true;
+        });
+    </script>
+</body>
+</html>

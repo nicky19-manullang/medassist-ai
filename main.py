@@ -493,3 +493,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
 async def logout(request: Request):
     request.session.clear()
     return RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+    
+@app.get("/")
+def health_check():
+    return {"message": "App is running"}

@@ -1,8 +1,9 @@
 fastapi
 uvicorn
-pymysql
 sqlalchemy
+pymysql
 python-multipart
 passlib[bcrypt]
 python-jose
-pymysql
+itsdangerous
+python-dotenv
